@@ -203,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <!-- RUN -->
   <div id="form-run" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="run-date"></div>
+    <div class="field"><label>Date</label><input type="date" id="run-date" onchange="checkExisting('run')"></div>
     <div class="field"><label>Name</label><input type="text" id="run-name" placeholder="e.g. Morning run, Regents Park"></div>
     <div class="field"><label>Description (optional)</label><textarea id="run-desc" placeholder="How did it feel? Any notes..."></textarea></div>
     <div class="field"><label>Run type</label>
@@ -233,12 +233,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field"><label>RPE</label>
       <div class="rpe-grid" id="rpe-run"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveRun()">Save run</button>
+    <div id="run-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing run — tap Save to update</div><button class="btn btn-primary" id="run-save-btn" onclick="saveRun()">Save run</button>
   </div>
 
   <!-- GYM -->
   <div id="form-gym" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="gym-date"></div>
+    <div class="field"><label>Date</label><input type="date" id="gym-date" onchange="checkExisting('gym')"></div>
     <div class="field"><label>Name</label><input type="text" id="gym-name" placeholder="e.g. Fitness First"></div>
     <div class="field"><label>Description (optional)</label><textarea id="gym-desc" placeholder="Focus of session, any notes..."></textarea></div>
     <div class="section-label">Physio (gym)</div>
@@ -254,12 +254,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field" style="margin-top:12px"><label>RPE</label>
       <div class="rpe-grid" id="rpe-gym"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveGym()">Save gym session</button>
+    <div id="gym-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="gym-save-btn" onclick="saveGym()">Save gym session</button>
   </div>
 
   <!-- HOME -->
   <div id="form-home" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="home-date"></div>
+    <div class="field"><label>Date</label><input type="date" id="home-date" onchange="checkExisting('home')"></div>
     <div class="field"><label>Name</label><input type="text" id="home-name" placeholder="e.g. Morning physio"></div>
     <div class="field"><label>Description (optional)</label><textarea id="home-desc" placeholder="Any notes..."></textarea></div>
     <div class="section-label">Daily stretch</div>
@@ -269,19 +269,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field" style="margin-top:12px"><label>RPE</label>
       <div class="rpe-grid" id="rpe-home"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveHome()">Save home session</button>
+    <div id="home-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="home-save-btn" onclick="saveHome()">Save home session</button>
   </div>
 
   <!-- OTHER -->
   <div id="form-other" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="other-date"></div>
+    <div class="field"><label>Date</label><input type="date" id="other-date" onchange="checkExisting('other')"></div>
     <div class="field"><label>Name</label><input type="text" id="other-name" placeholder="e.g. Pilates, Yoga"></div>
     <div class="field"><label>Description (optional)</label><textarea id="other-desc" placeholder="Any notes..."></textarea></div>
     <div class="field"><label>Duration (mins)</label><input type="number" id="other-dur" placeholder="60"></div>
     <div class="field"><label>RPE</label>
       <div class="rpe-grid" id="rpe-other"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveOther()">Save session</button>
+    <div id="other-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="other-save-btn" onclick="saveOther()">Save session</button>
   </div>
 </div>
 
@@ -419,6 +419,43 @@ let currentType='';
 let currentSubtype='easy';
 let intervalCount=0;
 
+function checkExisting(type){
+  const date=document.getElementById(`${type}-date`).value;
+  if(!date)return;
+  const existing=entries.find(e=>e.date===date&&e.type===type);
+  const banner=document.getElementById(`${type}-edit-banner`);
+  if(existing){
+    window._editingId=existing.id;
+    if(banner)banner.style.display='block';
+    const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;};
+    if(type==='run'){
+      setVal('run-name',existing.name);setVal('run-desc',existing.desc);
+      setVal('run-dist',existing.dist);setVal('run-time',existing.time);
+      setVal('run-pace',existing.pace);setVal('run-hr',existing.hr);
+      const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
+      if(subBtn)setSubtype(existing.subtype,subBtn);
+      if(existing.subtype==='track'&&existing.intervals?.length){
+        setVal('track-dist',existing.intDist);setVal('track-num',existing.intervals.length);
+        buildIntervalRows();
+        existing.intervals.forEach(i=>{setVal(`int-pace-${i.n}`,i.pace);setVal(`int-rest-${i.n}`,i.rest);});
+      }
+      document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    } else if(type==='other'){
+      setVal('other-name',existing.name);setVal('other-desc',existing.desc);setVal('other-dur',existing.duration);
+      document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    } else if(type==='gym'){
+      setVal('gym-name',existing.name);setVal('gym-desc',existing.desc);
+      document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    } else if(type==='home'){
+      setVal('home-name',existing.name);setVal('home-desc',existing.desc);
+      document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    }
+  } else {
+    window._editingId=null;
+    if(banner)banner.style.display='none';
+  }
+}
+
 function setType(type,btn){
   currentType=type;
   document.querySelectorAll('.type-btn').forEach(b=>b.className='type-btn');
@@ -518,7 +555,7 @@ function saveRun(){
     intervals,
     rpe:getRPE('rpe-run')
   };
-  if(window._editingId){window._editingId=null;}entries.unshift(e);save();showToast('Run saved');
+  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;document.getElementById('run-edit-banner').style.display='none';}entries.unshift(e);save();showToast('Run saved');
   resetForm('run');renderDashboard();renderHistory(currentHistoryPeriod);renderWeights(currentWeightsPeriod);
 }
 
@@ -535,7 +572,7 @@ function saveGym(){
     isos:collectEx(ISOS,'iso'),
     rpe:getRPE('rpe-gym')
   };
-  entries.unshift(e);save();showToast('Gym session saved');
+  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;const b=document.getElementById('gym-edit-banner');if(b)b.style.display='none';}entries.unshift(e);save();showToast('Gym session saved');
   buildGymForms();renderDashboard();renderHistory(currentHistoryPeriod);renderWeights(currentWeightsPeriod);
 }
 
@@ -549,7 +586,7 @@ function saveHome(){
     physio:collectEx(HOME_PHYSIO,'hp',false),
     rpe:getRPE('rpe-home')
   };
-  entries.unshift(e);save();showToast('Home session saved');
+  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;const b=document.getElementById('home-edit-banner');if(b)b.style.display='none';}entries.unshift(e);save();showToast('Home session saved');
   buildHomeForms();renderDashboard();renderHistory(currentHistoryPeriod);
 }
 
@@ -562,7 +599,7 @@ function saveOther(){
     duration:document.getElementById('other-dur').value,
     rpe:getRPE('rpe-other')
   };
-  entries.unshift(e);save();showToast('Session saved');
+  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;document.getElementById('other-edit-banner').style.display='none';}entries.unshift(e);save();showToast('Session saved');
   resetForm('other');renderDashboard();renderHistory(currentHistoryPeriod);
 }
 
@@ -570,6 +607,8 @@ function resetForm(type){
   const fields=type==='run'?['run-name','run-desc','run-dist','run-time','run-pace','run-hr']:['other-name','other-desc','other-dur'];
   fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   if(type==='run'){document.getElementById('interval-list').innerHTML='';document.getElementById('track-num').value='';}
+  const banner=document.getElementById(`${type}-edit-banner`);if(banner)banner.style.display='none';
+  window._editingId=null;
   buildRPE();
 }
 
