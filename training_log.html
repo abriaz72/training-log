@@ -446,6 +446,31 @@ function checkExisting(type){
     } else if(type==='gym'){
       setVal('gym-name',existing.name);setVal('gym-desc',existing.desc);
       document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+      // Pre-fill exercise checkboxes and values
+      const prefillExercises=(exercises,prefix,saved)=>{
+        if(!saved||!saved.length)return;
+        exercises.forEach(ex=>{
+          const saved_ex=saved.find(s=>s.name===ex.name);
+          if(saved_ex){
+            const cb=document.getElementById(`${prefix}-${ex.id}`);
+            if(cb){
+              cb.checked=true;
+              toggleEx(`${prefix}-inp-${ex.id}`,true);
+              const setsEl=document.getElementById(`${prefix}-sets-${ex.id}`);
+              const repsEl=document.getElementById(`${prefix}-reps-${ex.id}`);
+              const kgEl=document.getElementById(`${prefix}-kg-${ex.id}`);
+              if(setsEl)setsEl.value=saved_ex.sets||'';
+              if(repsEl)repsEl.value=saved_ex.reps||'';
+              if(kgEl)kgEl.value=saved_ex.kg||'';
+            }
+          }
+        });
+      };
+      prefillExercises(GYM_PHYSIO,'gp',existing.physio);
+      prefillExercises(EGYM,'eg',existing.egym);
+      prefillExercises(REG_GYM,'rg',existing.regGym);
+      prefillExercises(BLOCK1,'b1',existing.block1);
+      prefillExercises(ISOS,'iso',existing.isos);
     } else if(type==='home'){
       setVal('home-name',existing.name);setVal('home-desc',existing.desc);
       document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
@@ -741,7 +766,7 @@ function renderWeights(period){
   const keys=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
   c.innerHTML=keys.map(k=>{
     const g=grouped[k];
-    const label=period==='weekly'?fmtWeek(k+'-01')||fmtWeek(k):period==='monthly'?fmtMonth(k):k;
+    const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
     return `<div class="period-row">
       <div class="period-title">${label}</div>
       <div class="period-stats">
