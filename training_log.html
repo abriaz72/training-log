@@ -505,6 +505,7 @@ function setType(type,btn){
   btn.className=`type-btn active-${type}`;
   ['run','gym','home','other'].forEach(t=>document.getElementById(`form-${t}`).style.display='none');
   document.getElementById(`form-${type}`).style.display='block';
+  checkExisting(type);
 }
 
 function setSubtype(sub,btn){
