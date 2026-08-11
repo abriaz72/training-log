@@ -442,7 +442,21 @@ function loadExistingEntry(existing,type){
   window._editingId=existing.id;
   if(banner){banner.style.display='block';banner.innerHTML='Editing existing entry — tap Save to update';}
   const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;};
-  if(type==='run'){loadExistingRun(existing.id);return;}
+  if(type==='run'){
+    const fv=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
+    fv('run-name',existing.name);fv('run-desc',existing.desc);
+    fv('run-dist',existing.dist);fv('run-time',existing.time);
+    fv('run-pace',existing.pace);fv('run-hr',existing.hr);
+    const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
+    if(subBtn)setSubtype(existing.subtype,subBtn);
+    if(existing.subtype==='track'&&existing.intervals?.length){
+      fv('track-dist',existing.intDist);fv('track-num',existing.intervals.length);
+      buildIntervalRows();
+      existing.intervals.forEach(i=>{fv(`int-pace-${i.n}`,i.pace);fv(`int-rest-${i.n}`,i.rest);});
+    }
+    document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    return;
+  }
   if(type==='other'){
     setVal('other-name',existing.name);setVal('other-desc',existing.desc);setVal('other-dur',existing.duration);
     document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
@@ -478,23 +492,21 @@ function loadExistingEntry(existing,type){
 }
 
 function loadExistingRun(id){
-  const runBtn=document.querySelector('.type-btn:nth-child(1)');
-  if(runBtn&&currentType!=='run')setType('run',runBtn);
   const existing=entries.find(e=>e.id===id);
   if(!existing)return;
   const banner=document.getElementById('run-edit-banner');
   window._editingId=existing.id;
   if(banner){banner.style.display='block';banner.innerHTML='Editing existing run — tap Save to update';}
-  const setVal=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
-  setVal('run-name',existing.name);setVal('run-desc',existing.desc);
-  setVal('run-dist',existing.dist);setVal('run-time',existing.time);
-  setVal('run-pace',existing.pace);setVal('run-hr',existing.hr);
+  const fv=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
+  fv('run-name',existing.name);fv('run-desc',existing.desc);
+  fv('run-dist',existing.dist);fv('run-time',existing.time);
+  fv('run-pace',existing.pace);fv('run-hr',existing.hr);
   const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
   if(subBtn)setSubtype(existing.subtype,subBtn);
   if(existing.subtype==='track'&&existing.intervals?.length){
-    setVal('track-dist',existing.intDist);setVal('track-num',existing.intervals.length);
+    fv('track-dist',existing.intDist);fv('track-num',existing.intervals.length);
     buildIntervalRows();
-    existing.intervals.forEach(i=>{setVal(`int-pace-${i.n}`,i.pace);setVal(`int-rest-${i.n}`,i.rest);});
+    existing.intervals.forEach(i=>{fv(`int-pace-${i.n}`,i.pace);fv(`int-rest-${i.n}`,i.rest);});
   }
   document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
 }
@@ -505,7 +517,7 @@ function setType(type,btn){
   btn.className=`type-btn active-${type}`;
   ['run','gym','home','other'].forEach(t=>document.getElementById(`form-${t}`).style.display='none');
   document.getElementById(`form-${type}`).style.display='block';
-  setTimeout(()=>checkExisting(type),50);
+  if(!window._editingId)setTimeout(()=>checkExisting(type),50);
 }
 
 function setSubtype(sub,btn){
