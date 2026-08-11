@@ -422,63 +422,81 @@ let intervalCount=0;
 function checkExisting(type){
   const date=document.getElementById(`${type}-date`).value;
   if(!date)return;
-  const existing=entries.find(e=>e.date===date&&e.type===type);
+  const allOnDate=entries.filter(e=>e.date===date&&e.type===type);
   const banner=document.getElementById(`${type}-edit-banner`);
-  if(existing){
-    window._editingId=existing.id;
-    if(banner)banner.style.display='block';
-    const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;};
-    if(type==='run'){
-      setVal('run-name',existing.name);setVal('run-desc',existing.desc);
-      setVal('run-dist',existing.dist);setVal('run-time',existing.time);
-      setVal('run-pace',existing.pace);setVal('run-hr',existing.hr);
-      const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
-      if(subBtn)setSubtype(existing.subtype,subBtn);
-      if(existing.subtype==='track'&&existing.intervals?.length){
-        setVal('track-dist',existing.intDist);setVal('track-num',existing.intervals.length);
-        buildIntervalRows();
-        existing.intervals.forEach(i=>{setVal(`int-pace-${i.n}`,i.pace);setVal(`int-rest-${i.n}`,i.rest);});
-      }
-      document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-    } else if(type==='other'){
-      setVal('other-name',existing.name);setVal('other-desc',existing.desc);setVal('other-dur',existing.duration);
-      document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-    } else if(type==='gym'){
-      setVal('gym-name',existing.name);setVal('gym-desc',existing.desc);
-      document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-      // Pre-fill exercise checkboxes and values
-      const prefillExercises=(exercises,prefix,saved)=>{
-        if(!saved||!saved.length)return;
-        exercises.forEach(ex=>{
-          const saved_ex=saved.find(s=>s.name===ex.name);
-          if(saved_ex){
-            const cb=document.getElementById(`${prefix}-${ex.id}`);
-            if(cb){
-              cb.checked=true;
-              toggleEx(`${prefix}-inp-${ex.id}`,true);
-              const setsEl=document.getElementById(`${prefix}-sets-${ex.id}`);
-              const repsEl=document.getElementById(`${prefix}-reps-${ex.id}`);
-              const kgEl=document.getElementById(`${prefix}-kg-${ex.id}`);
-              if(setsEl)setsEl.value=saved_ex.sets||'';
-              if(repsEl)repsEl.value=saved_ex.reps||'';
-              if(kgEl)kgEl.value=saved_ex.kg||'';
-            }
-          }
-        });
-      };
-      prefillExercises(GYM_PHYSIO,'gp',existing.physio);
-      prefillExercises(EGYM,'eg',existing.egym);
-      prefillExercises(REG_GYM,'rg',existing.regGym);
-      prefillExercises(BLOCK1,'b1',existing.block1);
-      prefillExercises(ISOS,'iso',existing.isos);
-    } else if(type==='home'){
-      setVal('home-name',existing.name);setVal('home-desc',existing.desc);
-      document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+  if(allOnDate.length===0){window._editingId=null;if(banner)banner.style.display='none';return;}
+  if(allOnDate.length>1&&type==='run'){
+    // Multiple runs — show picker
+    if(banner){
+      banner.style.display='block';
+      banner.innerHTML=`<div style="font-size:13px;font-weight:600;margin-bottom:8px">Multiple runs on this date — select one to edit:</div>`+
+        allOnDate.map(e=>`<button onclick="loadExistingRun(${e.id})" style="display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:6px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:13px">${e.name||'Run'} · ${e.subtype||'easy'}${e.dist?' · '+e.dist+'mi':''}</button>`).join('');
     }
-  } else {
-    window._editingId=null;
-    if(banner)banner.style.display='none';
+    return;
   }
+  loadExistingEntry(allOnDate[0],type);
+}
+
+function loadExistingEntry(existing,type){
+  const banner=document.getElementById(`${type}-edit-banner`);
+  window._editingId=existing.id;
+  if(banner){banner.style.display='block';banner.innerHTML='Editing existing entry — tap Save to update';}
+  const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;};
+  if(type==='run'){loadExistingRun(existing.id);return;}
+  if(type==='other'){
+    setVal('other-name',existing.name);setVal('other-desc',existing.desc);setVal('other-dur',existing.duration);
+    document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+  } else if(type==='gym'){
+    setVal('gym-name',existing.name);setVal('gym-desc',existing.desc);
+    document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+    const prefillExercises=(exercises,prefix,saved)=>{
+      if(!saved||!saved.length)return;
+      exercises.forEach(ex=>{
+        const saved_ex=saved.find(s=>s.name===ex.name);
+        if(saved_ex){
+          const cb=document.getElementById(`${prefix}-${ex.id}`);
+          if(cb){cb.checked=true;toggleEx(`${prefix}-inp-${ex.id}`,true);
+            const setsEl=document.getElementById(`${prefix}-sets-${ex.id}`);
+            const repsEl=document.getElementById(`${prefix}-reps-${ex.id}`);
+            const kgEl=document.getElementById(`${prefix}-kg-${ex.id}`);
+            if(setsEl)setsEl.value=saved_ex.sets||'';
+            if(repsEl)repsEl.value=saved_ex.reps||'';
+            if(kgEl)kgEl.value=saved_ex.kg||'';
+          }
+        }
+      });
+    };
+    prefillExercises(GYM_PHYSIO,'gp',existing.physio);
+    prefillExercises(EGYM,'eg',existing.egym);
+    prefillExercises(REG_GYM,'rg',existing.regGym);
+    prefillExercises(BLOCK1,'b1',existing.block1);
+    prefillExercises(ISOS,'iso',existing.isos);
+  } else if(type==='home'){
+    setVal('home-name',existing.name);setVal('home-desc',existing.desc);
+    document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
+  }
+}
+
+function loadExistingRun(id){
+  const runBtn=document.querySelector('.type-btn:nth-child(1)');
+  if(runBtn&&currentType!=='run')setType('run',runBtn);
+  const existing=entries.find(e=>e.id===id);
+  if(!existing)return;
+  const banner=document.getElementById('run-edit-banner');
+  window._editingId=existing.id;
+  if(banner){banner.style.display='block';banner.innerHTML='Editing existing run — tap Save to update';}
+  const setVal=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
+  setVal('run-name',existing.name);setVal('run-desc',existing.desc);
+  setVal('run-dist',existing.dist);setVal('run-time',existing.time);
+  setVal('run-pace',existing.pace);setVal('run-hr',existing.hr);
+  const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
+  if(subBtn)setSubtype(existing.subtype,subBtn);
+  if(existing.subtype==='track'&&existing.intervals?.length){
+    setVal('track-dist',existing.intDist);setVal('track-num',existing.intervals.length);
+    buildIntervalRows();
+    existing.intervals.forEach(i=>{setVal(`int-pace-${i.n}`,i.pace);setVal(`int-rest-${i.n}`,i.rest);});
+  }
+  document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
 }
 
 function setType(type,btn){
@@ -732,15 +750,32 @@ function renderHistory(period){
     const h=Math.floor(g.secs/3600);const m=Math.floor((g.secs%3600)/60);
     const timeStr=g.secs>0?(h>0?`${h}h ${m}m`:`${m}m`):'—';
     const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
-    return `<div style="display:grid;grid-template-columns:1fr repeat(3,72px);gap:4px;padding:12px 4px;border-bottom:1px solid var(--border);align-items:center">
+    const safeKey=k.replace(/[^a-z0-9]/gi,'_');
+    const sessionRows=g.entries.map(e=>{
+      const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+      const dist=e.dist?`${e.dist}mi`:'—';
+      const sub=e.subtype||'easy';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:12px;color:var(--text3)">${d} · <span style="color:var(--run);font-weight:600">${sub}</span></div>
+          <div style="font-size:14px;font-weight:500;margin-top:1px">${e.name||'Run'}</div>
+          <div style="font-size:12px;color:var(--text2)">${dist}${e.pace?' · '+e.pace+'/mi':''}${e.hr?' · '+e.hr+'bpm':''}</div>
+        </div>
+        <button onclick="deleteEntry(${e.id})" style="background:none;border:none;color:#c0392b;font-size:12px;cursor:pointer;padding:4px 8px;flex-shrink:0">Delete</button>
+      </div>`;
+    }).join('');
+    return `<div style="display:grid;grid-template-columns:1fr repeat(3,72px);gap:4px;padding:12px 4px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer" onclick="toggleHistory('hist-${safeKey}')">
       <div style="font-size:14px;font-weight:600;color:var(--text)">${label}</div>
       <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${g.entries.length}</div>
       <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${g.mi.toFixed(1)}</div>
       <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${timeStr}</div>
-    </div>`;
+    </div>
+    <div id="hist-${safeKey}" style="display:none;padding:0 4px">${sessionRows}</div>`;
   }).join('');
   c.innerHTML=`<div class="card" style="padding:12px 16px">${headers}${rows}</div>`;
 }
+
+function toggleHistory(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 // ─── WEIGHTS ──────────────────────────────────────────────────────────
 let currentWeightsPeriod='weekly';
