@@ -709,18 +709,42 @@ function renderDashboard(){
     const ds=d.toISOString().split('T')[0];
     const dayEntries=entries.filter(e=>e.date===ds);
     const isToday=ds===today;
-    let dotClass='day-dot';
-    if(dayEntries.length){
-      const types=dayEntries.map(e=>e.type);
-      if(types.includes('run'))dotClass+=' has-run';
-      else if(types.includes('gym'))dotClass+=' has-gym';
-      else if(types.includes('home'))dotClass+=' has-home';
-      else dotClass+=' has-other';
+    const typeColors={
+      run:'var(--run)',gym:'var(--gym)',home:'var(--home)',other:'var(--other)'
+    };
+    const typeBg={
+      run:'var(--run-bg)',gym:'var(--gym-bg)',home:'var(--home-bg)',other:'var(--other-bg)'
+    };
+    // Get unique types in order logged
+    const seenTypes=[];
+    dayEntries.forEach(e=>{if(!seenTypes.includes(e.type))seenTypes.push(e.type);});
+    const n=seenTypes.length;
+    let dotHtml='';
+    const todayStyle=isToday?'font-weight:800;':'';
+    if(n===0){
+      dotHtml=`<div class="day-dot${isToday?' today':''}">${d.getDate()}</div>`;
+    } else if(n===1){
+      const c=typeColors[seenTypes[0]];const bg=typeBg[seenTypes[0]];
+      dotHtml=`<div class="day-dot today" style="background:${bg};border-color:${c};color:${c};${todayStyle}">${d.getDate()}</div>`;
+    } else if(n===2){
+      const c1=typeColors[seenTypes[0]],c2=typeColors[seenTypes[1]];
+      dotHtml=`<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;border:1.5px solid #ccc;position:relative;display:flex;align-items:center;justify-content:center;${todayStyle}font-size:10px;font-weight:600;color:#fff">
+        <div style="position:absolute;left:0;top:0;width:50%;height:100%;background:${c1}"></div>
+        <div style="position:absolute;right:0;top:0;width:50%;height:100%;background:${c2}"></div>
+        <span style="position:relative;z-index:1;color:#fff;mix-blend-mode:difference">${d.getDate()}</span>
+      </div>`;
+    } else {
+      const c1=typeColors[seenTypes[0]],c2=typeColors[seenTypes[1]],c3=typeColors[seenTypes[2]||seenTypes[1]];
+      dotHtml=`<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;border:1.5px solid #ccc;position:relative;display:flex;align-items:center;justify-content:center;${todayStyle}font-size:10px;font-weight:600">
+        <div style="position:absolute;left:0;top:0;width:50%;height:50%;background:${c1}"></div>
+        <div style="position:absolute;right:0;top:0;width:50%;height:50%;background:${c2}"></div>
+        <div style="position:absolute;left:0;bottom:0;width:100%;height:50%;background:${c3}"></div>
+        <span style="position:relative;z-index:1;color:#fff;mix-blend-mode:difference">${d.getDate()}</span>
+      </div>`;
     }
-    if(isToday)dotClass+=' today';
     const cell=document.createElement('div');
     cell.className='day-cell';
-    cell.innerHTML=`<span class="day-name">${days[i]}</span><div class="${dotClass}">${d.getDate()}</div>`;
+    cell.innerHTML=`<span class="day-name">${days[i]}</span>${dotHtml}`;
     cal.appendChild(cell);
   }
 }
