@@ -203,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <!-- RUN -->
   <div id="form-run" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="run-date" onchange="checkExisting('run')"></div>
+    <div class="field"><label>Date</label><input type="date" id="run-date"></div>
     <div class="field"><label>Name</label><input type="text" id="run-name" placeholder="e.g. Morning run, Regents Park"></div>
     <div class="field"><label>Description (optional)</label><textarea id="run-desc" placeholder="How did it feel? Any notes..."></textarea></div>
     <div class="field"><label>Run type</label>
@@ -233,12 +233,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field"><label>RPE</label>
       <div class="rpe-grid" id="rpe-run"></div>
     </div>
-    <div id="run-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing run — tap Save to update</div><button class="btn btn-primary" id="run-save-btn" onclick="saveRun()">Save run</button>
+    <button class="btn btn-primary" onclick="saveRun()">Save run</button>
   </div>
 
   <!-- GYM -->
   <div id="form-gym" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="gym-date" onchange="checkExisting('gym')"></div>
+    <div class="field"><label>Date</label><input type="date" id="gym-date"></div>
     <div class="field"><label>Name</label><input type="text" id="gym-name" placeholder="e.g. Fitness First"></div>
     <div class="field"><label>Description (optional)</label><textarea id="gym-desc" placeholder="Focus of session, any notes..."></textarea></div>
     <div class="section-label">Physio (gym)</div>
@@ -254,12 +254,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field" style="margin-top:12px"><label>RPE</label>
       <div class="rpe-grid" id="rpe-gym"></div>
     </div>
-    <div id="gym-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="gym-save-btn" onclick="saveGym()">Save gym session</button>
+    <button class="btn btn-primary" onclick="saveGym()">Save gym session</button>
   </div>
 
   <!-- HOME -->
   <div id="form-home" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="home-date" onchange="checkExisting('home')"></div>
+    <div class="field"><label>Date</label><input type="date" id="home-date"></div>
     <div class="field"><label>Name</label><input type="text" id="home-name" placeholder="e.g. Morning physio"></div>
     <div class="field"><label>Description (optional)</label><textarea id="home-desc" placeholder="Any notes..."></textarea></div>
     <div class="section-label">Daily stretch</div>
@@ -269,19 +269,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field" style="margin-top:12px"><label>RPE</label>
       <div class="rpe-grid" id="rpe-home"></div>
     </div>
-    <div id="home-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="home-save-btn" onclick="saveHome()">Save home session</button>
+    <button class="btn btn-primary" onclick="saveHome()">Save home session</button>
   </div>
 
   <!-- OTHER -->
   <div id="form-other" style="display:none">
-    <div class="field"><label>Date</label><input type="date" id="other-date" onchange="checkExisting('other')"></div>
+    <div class="field"><label>Date</label><input type="date" id="other-date"></div>
     <div class="field"><label>Name</label><input type="text" id="other-name" placeholder="e.g. Pilates, Yoga"></div>
     <div class="field"><label>Description (optional)</label><textarea id="other-desc" placeholder="Any notes..."></textarea></div>
     <div class="field"><label>Duration (mins)</label><input type="number" id="other-dur" placeholder="60"></div>
     <div class="field"><label>RPE</label>
       <div class="rpe-grid" id="rpe-other"></div>
     </div>
-    <div id="other-edit-banner" style="display:none;background:var(--gym-bg);color:var(--gym);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-top:8px">Editing existing session — tap Save to update</div><button class="btn btn-primary" id="other-save-btn" onclick="saveOther()">Save session</button>
+    <button class="btn btn-primary" onclick="saveOther()">Save session</button>
   </div>
 </div>
 
@@ -419,105 +419,12 @@ let currentType='';
 let currentSubtype='easy';
 let intervalCount=0;
 
-function checkExisting(type){
-  const date=document.getElementById(`${type}-date`).value;
-  if(!date)return;
-  const allOnDate=entries.filter(e=>e.date===date&&e.type===type);
-  const banner=document.getElementById(`${type}-edit-banner`);
-  if(allOnDate.length===0){window._editingId=null;if(banner)banner.style.display='none';return;}
-  if(allOnDate.length>1&&type==='run'){
-    // Multiple runs — show picker
-    if(banner){
-      banner.style.display='block';
-      banner.innerHTML=`<div style="font-size:13px;font-weight:600;margin-bottom:8px">Multiple runs on this date — select one to edit:</div>`+
-        allOnDate.map(e=>`<button onclick="loadExistingRun(${e.id})" style="display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:6px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:13px">${e.name||'Run'} · ${e.subtype||'easy'}${e.dist?' · '+e.dist+'mi':''}</button>`).join('');
-    }
-    return;
-  }
-  loadExistingEntry(allOnDate[0],type);
-}
-
-function loadExistingEntry(existing,type){
-  const banner=document.getElementById(`${type}-edit-banner`);
-  window._editingId=existing.id;
-  if(banner){banner.style.display='block';banner.innerHTML='Editing existing entry — tap Save to update';}
-  const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;};
-  if(type==='run'){
-    const fv=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
-    fv('run-name',existing.name);fv('run-desc',existing.desc);
-    fv('run-dist',existing.dist);fv('run-time',existing.time);
-    fv('run-pace',existing.pace);fv('run-hr',existing.hr);
-    const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
-    if(subBtn)setSubtype(existing.subtype,subBtn);
-    if(existing.subtype==='track'&&existing.intervals?.length){
-      fv('track-dist',existing.intDist);fv('track-num',existing.intervals.length);
-      buildIntervalRows();
-      existing.intervals.forEach(i=>{fv(`int-pace-${i.n}`,i.pace);fv(`int-rest-${i.n}`,i.rest);});
-    }
-    document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-    return;
-  }
-  if(type==='other'){
-    setVal('other-name',existing.name);setVal('other-desc',existing.desc);setVal('other-dur',existing.duration);
-    document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-  } else if(type==='gym'){
-    setVal('gym-name',existing.name);setVal('gym-desc',existing.desc);
-    document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-    const prefillExercises=(exercises,prefix,saved)=>{
-      if(!saved||!saved.length)return;
-      exercises.forEach(ex=>{
-        const saved_ex=saved.find(s=>s.name===ex.name);
-        if(saved_ex){
-          const cb=document.getElementById(`${prefix}-${ex.id}`);
-          if(cb){cb.checked=true;toggleEx(`${prefix}-inp-${ex.id}`,true);
-            const setsEl=document.getElementById(`${prefix}-sets-${ex.id}`);
-            const repsEl=document.getElementById(`${prefix}-reps-${ex.id}`);
-            const kgEl=document.getElementById(`${prefix}-kg-${ex.id}`);
-            if(setsEl)setsEl.value=saved_ex.sets||'';
-            if(repsEl)repsEl.value=saved_ex.reps||'';
-            if(kgEl)kgEl.value=saved_ex.kg||'';
-          }
-        }
-      });
-    };
-    prefillExercises(GYM_PHYSIO,'gp',existing.physio);
-    prefillExercises(EGYM,'eg',existing.egym);
-    prefillExercises(REG_GYM,'rg',existing.regGym);
-    prefillExercises(BLOCK1,'b1',existing.block1);
-    prefillExercises(ISOS,'iso',existing.isos);
-  } else if(type==='home'){
-    setVal('home-name',existing.name);setVal('home-desc',existing.desc);
-    document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-  }
-}
-
-function loadExistingRun(id){
-  const existing=entries.find(e=>e.id===id);
-  if(!existing)return;
-  const banner=document.getElementById('run-edit-banner');
-  window._editingId=existing.id;
-  if(banner){banner.style.display='block';banner.innerHTML='Editing existing run — tap Save to update';}
-  const fv=(fid,val)=>{const el=document.getElementById(fid);if(el&&val!==undefined&&val!==null)el.value=val;};
-  fv('run-name',existing.name);fv('run-desc',existing.desc);
-  fv('run-dist',existing.dist);fv('run-time',existing.time);
-  fv('run-pace',existing.pace);fv('run-hr',existing.hr);
-  const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${existing.subtype}',this)"]`);
-  if(subBtn)setSubtype(existing.subtype,subBtn);
-  if(existing.subtype==='track'&&existing.intervals?.length){
-    fv('track-dist',existing.intDist);fv('track-num',existing.intervals.length);
-    buildIntervalRows();
-    existing.intervals.forEach(i=>{fv(`int-pace-${i.n}`,i.pace);fv(`int-rest-${i.n}`,i.rest);});
-  }
-  document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>b.classList.toggle('selected',b.textContent===existing.rpe));
-}
-
 function setType(type,btn){
   currentType=type;
   document.querySelectorAll('.type-btn').forEach(b=>b.className='type-btn');
   btn.className=`type-btn active-${type}`;
   ['run','gym','home','other'].forEach(t=>document.getElementById(`form-${t}`).style.display='none');
   document.getElementById(`form-${type}`).style.display='block';
-  if(!window._editingId)setTimeout(()=>checkExisting(type),50);
 }
 
 function setSubtype(sub,btn){
@@ -611,7 +518,7 @@ function saveRun(){
     intervals,
     rpe:getRPE('rpe-run')
   };
-  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;document.getElementById('run-edit-banner').style.display='none';}entries.unshift(e);save();showToast('Run saved');
+  entries.unshift(e);save();showToast('Run saved');
   resetForm('run');renderDashboard();renderHistory(currentHistoryPeriod);renderWeights(currentWeightsPeriod);
 }
 
@@ -628,7 +535,7 @@ function saveGym(){
     isos:collectEx(ISOS,'iso'),
     rpe:getRPE('rpe-gym')
   };
-  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;const b=document.getElementById('gym-edit-banner');if(b)b.style.display='none';}entries.unshift(e);save();showToast('Gym session saved');
+  entries.unshift(e);save();showToast('Gym session saved');
   buildGymForms();renderDashboard();renderHistory(currentHistoryPeriod);renderWeights(currentWeightsPeriod);
 }
 
@@ -642,7 +549,7 @@ function saveHome(){
     physio:collectEx(HOME_PHYSIO,'hp',false),
     rpe:getRPE('rpe-home')
   };
-  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;const b=document.getElementById('home-edit-banner');if(b)b.style.display='none';}entries.unshift(e);save();showToast('Home session saved');
+  entries.unshift(e);save();showToast('Home session saved');
   buildHomeForms();renderDashboard();renderHistory(currentHistoryPeriod);
 }
 
@@ -655,7 +562,7 @@ function saveOther(){
     duration:document.getElementById('other-dur').value,
     rpe:getRPE('rpe-other')
   };
-  if(window._editingId){entries=entries.filter(x=>x.id!==window._editingId);window._editingId=null;document.getElementById('other-edit-banner').style.display='none';}entries.unshift(e);save();showToast('Session saved');
+  entries.unshift(e);save();showToast('Session saved');
   resetForm('other');renderDashboard();renderHistory(currentHistoryPeriod);
 }
 
@@ -663,8 +570,6 @@ function resetForm(type){
   const fields=type==='run'?['run-name','run-desc','run-dist','run-time','run-pace','run-hr']:['other-name','other-desc','other-dur'];
   fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   if(type==='run'){document.getElementById('interval-list').innerHTML='';document.getElementById('track-num').value='';}
-  const banner=document.getElementById(`${type}-edit-banner`);if(banner)banner.style.display='none';
-  window._editingId=null;
   buildRPE();
 }
 
@@ -674,7 +579,7 @@ function weekKey(d){try{const m=getMon(d);if(isNaN(m.getTime()))return d;return 
 function monthKey(d){return d.slice(0,7);}
 function yearKey(d){return d.slice(0,4);}
 function fmtWeek(d){try{const m=getMon(d);const dt=new Date(m);if(isNaN(dt.getTime()))return d;return 'w/c '+dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch(e){return d;}}
-function fmtMonth(d){return new Date(d+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});}
+function fmtMonth(d){return new Date(d+'-01').toLocaleDateString('en-GB',{month:'short',year:'numeric'});}
 function todayStr(){return new Date().toISOString().split('T')[0];}
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -709,42 +614,18 @@ function renderDashboard(){
     const ds=d.toISOString().split('T')[0];
     const dayEntries=entries.filter(e=>e.date===ds);
     const isToday=ds===today;
-    const typeColors={
-      run:'var(--run)',gym:'var(--gym)',home:'var(--home)',other:'var(--other)'
-    };
-    const typeBg={
-      run:'var(--run-bg)',gym:'var(--gym-bg)',home:'var(--home-bg)',other:'var(--other-bg)'
-    };
-    // Get unique types in order logged
-    const seenTypes=[];
-    dayEntries.forEach(e=>{if(!seenTypes.includes(e.type))seenTypes.push(e.type);});
-    const n=seenTypes.length;
-    let dotHtml='';
-    const todayStyle=isToday?'font-weight:800;':'';
-    if(n===0){
-      dotHtml=`<div class="day-dot${isToday?' today':''}">${d.getDate()}</div>`;
-    } else if(n===1){
-      const c=typeColors[seenTypes[0]];const bg=typeBg[seenTypes[0]];
-      dotHtml=`<div class="day-dot today" style="background:${bg};border-color:${c};color:${c};${todayStyle}">${d.getDate()}</div>`;
-    } else if(n===2){
-      const c1=typeColors[seenTypes[0]],c2=typeColors[seenTypes[1]];
-      dotHtml=`<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;border:1.5px solid #ccc;position:relative;display:flex;align-items:center;justify-content:center;${todayStyle}font-size:10px;font-weight:600;color:#fff">
-        <div style="position:absolute;left:0;top:0;width:50%;height:100%;background:${c1}"></div>
-        <div style="position:absolute;right:0;top:0;width:50%;height:100%;background:${c2}"></div>
-        <span style="position:relative;z-index:1;color:#fff;mix-blend-mode:difference">${d.getDate()}</span>
-      </div>`;
-    } else {
-      const c1=typeColors[seenTypes[0]],c2=typeColors[seenTypes[1]],c3=typeColors[seenTypes[2]||seenTypes[1]];
-      dotHtml=`<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;border:1.5px solid #ccc;position:relative;display:flex;align-items:center;justify-content:center;${todayStyle}font-size:10px;font-weight:600">
-        <div style="position:absolute;left:0;top:0;width:50%;height:50%;background:${c1}"></div>
-        <div style="position:absolute;right:0;top:0;width:50%;height:50%;background:${c2}"></div>
-        <div style="position:absolute;left:0;bottom:0;width:100%;height:50%;background:${c3}"></div>
-        <span style="position:relative;z-index:1;color:#fff;mix-blend-mode:difference">${d.getDate()}</span>
-      </div>`;
+    let dotClass='day-dot';
+    if(dayEntries.length){
+      const types=dayEntries.map(e=>e.type);
+      if(types.includes('run'))dotClass+=' has-run';
+      else if(types.includes('gym'))dotClass+=' has-gym';
+      else if(types.includes('home'))dotClass+=' has-home';
+      else dotClass+=' has-other';
     }
+    if(isToday)dotClass+=' today';
     const cell=document.createElement('div');
     cell.className='day-cell';
-    cell.innerHTML=`<span class="day-name">${days[i]}</span>${dotHtml}`;
+    cell.innerHTML=`<span class="day-name">${days[i]}</span><div class="${dotClass}">${d.getDate()}</div>`;
     cal.appendChild(cell);
   }
 }
@@ -775,44 +656,26 @@ function renderHistory(period){
   });
 
   const keys=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
-  // Column headers
-  const headers=`<div style="display:grid;grid-template-columns:1fr repeat(3,72px);gap:4px;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:4px">
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Period</div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:0.05em">Runs</div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:0.05em">Miles</div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:0.05em">Time</div>
+  const header=`<div style="display:grid;grid-template-columns:1fr 60px 60px 60px;gap:4px;padding:8px 16px;border-bottom:2px solid var(--border)">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em">PERIOD</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-align:center">RUNS</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-align:center">MILES</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-align:center">TIME</div>
   </div>`;
   const rows=keys.map(k=>{
     const g=grouped[k];
     const h=Math.floor(g.secs/3600);const m=Math.floor((g.secs%3600)/60);
     const timeStr=g.secs>0?(h>0?`${h}h ${m}m`:`${m}m`):'—';
-    const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
-    const safeKey=k.replace(/[^a-z0-9]/gi,'_');
-    const sessionRows=g.entries.map(e=>{
-      const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-      const dist=e.dist?`${e.dist}mi`:'—';
-      const sub=e.subtype||'easy';
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:12px;color:var(--text3)">${d} · <span style="color:var(--run);font-weight:600">${sub}</span></div>
-          <div style="font-size:14px;font-weight:500;margin-top:1px">${e.name||'Run'}</div>
-          <div style="font-size:12px;color:var(--text2)">${dist}${e.pace?' · '+e.pace+'/mi':''}${e.hr?' · '+e.hr+'bpm':''}</div>
-        </div>
-        <button onclick="deleteEntry(${e.id})" style="background:none;border:none;color:#c0392b;font-size:12px;cursor:pointer;padding:4px 8px;flex-shrink:0">Delete</button>
-      </div>`;
-    }).join('');
-    return `<div style="display:grid;grid-template-columns:1fr repeat(3,72px);gap:4px;padding:12px 4px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer" onclick="toggleHistory('hist-${safeKey}')">
+    const label=period==='weekly'?fmtWeek(k+'-01')||fmtWeek(k):period==='monthly'?fmtMonth(k):k;
+    return `<div style="display:grid;grid-template-columns:1fr 60px 60px 60px;gap:4px;height:48px;align-items:center;padding:0 16px;border-bottom:1px solid var(--border)">
       <div style="font-size:14px;font-weight:600;color:var(--text)">${label}</div>
-      <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${g.entries.length}</div>
-      <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${g.mi.toFixed(1)}</div>
-      <div style="font-size:16px;font-weight:700;color:var(--run);text-align:center">${timeStr}</div>
-    </div>
-    <div id="hist-${safeKey}" style="display:none;padding:0 4px">${sessionRows}</div>`;
+      <div style="font-size:14px;font-weight:700;color:var(--run);text-align:center">${g.entries.length}<span style="font-size:11px;font-weight:400;color:var(--text3)"> run${g.entries.length!==1?'s':''}</span></div>
+      <div style="font-size:14px;font-weight:700;color:var(--run);text-align:center">${g.mi.toFixed(1)}<span style="font-size:11px;font-weight:400;color:var(--text3)"> mi</span></div>
+      <div style="font-size:14px;font-weight:700;color:var(--run);text-align:center">${timeStr}</div>
+    </div>`;
   }).join('');
-  c.innerHTML=`<div class="card" style="padding:12px 16px">${headers}${rows}</div>`;
+  c.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${header}${rows}</div>`;
 }
-
-function toggleHistory(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 // ─── WEIGHTS ──────────────────────────────────────────────────────────
 let currentWeightsPeriod='weekly';
@@ -836,16 +699,19 @@ function renderWeights(period){
   });
 
   const keys=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
-  c.innerHTML=keys.map(k=>{
+  const wtHeader=`<div style="display:grid;grid-template-columns:1fr auto;gap:4px;padding:8px 16px;border-bottom:2px solid var(--border)">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em">PERIOD</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em">GYM</div>
+  </div>`;
+  const wtRows=keys.map(k=>{
     const g=grouped[k];
-    const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
-    return `<div class="period-row">
-      <div class="period-title">${label}</div>
-      <div class="period-stats">
-        <div class="period-stat"><strong>${g.length}</strong> session${g.length!==1?'s':''}</div>
-      </div>
+    const label=period==='weekly'?fmtWeek(k+'-01')||fmtWeek(k):period==='monthly'?fmtMonth(k):k;
+    return `<div style="display:grid;grid-template-columns:1fr auto;gap:4px;height:48px;align-items:center;padding:0 16px;border-bottom:1px solid var(--border)">
+      <div style="font-size:14px;font-weight:600;color:var(--text)">${label}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--gym)">${g.length}<span style="font-size:11px;font-weight:400;color:var(--text3)"> session${g.length!==1?'s':''}</span></div>
     </div>`;
   }).join('');
+  c.innerHTML=`<div class="card" style="padding:0;overflow:hidden">${wtHeader}${wtRows}</div>`;
 }
 
 // ─── DETAIL MODAL ─────────────────────────────────────────────────────
@@ -855,10 +721,7 @@ function showDetail(id){
   const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   let html=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
     <div><div style="font-size:12px;color:var(--text3);margin-bottom:2px">${d}</div><h2 style="font-size:18px;font-weight:700">${e.name||e.type}</h2></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="editEntry(${id})" style="background:none;border:none;color:var(--gym);font-size:13px;cursor:pointer;padding:4px">Edit</button>
-      <button onclick="deleteEntry(${id})" style="background:none;border:none;color:#c0392b;font-size:13px;cursor:pointer;padding:4px">Delete</button>
-    </div>
+    <button onclick="deleteEntry(${id})" style="background:none;border:none;color:#c0392b;font-size:13px;cursor:pointer;padding:4px">Delete</button>
   </div>`;
   if(e.type==='run'){
     html+=`<div class="stat-grid" style="margin-bottom:12px">
@@ -895,61 +758,6 @@ function deleteEntry(id){
   save();
   document.getElementById('modal-overlay').classList.remove('open');
   renderDashboard();renderHistory(currentHistoryPeriod);renderWeights(currentWeightsPeriod);
-}
-
-function editEntry(id){
-  const e=entries.find(x=>x.id===id);
-  if(!e)return;
-  document.getElementById('modal-overlay').classList.remove('open');
-  // Switch to log screen
-  showScreen('log',document.querySelector('.nav-btn:nth-child(2)'));
-  // Set type
-  const typeBtn=document.querySelector(`.type-btn[onclick="setType('${e.type}',this)"]`);
-  if(typeBtn) setType(e.type,typeBtn);
-  // Fill common fields
-  const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined)el.value=val;};
-  setVal(`${e.type}-date`,e.date);
-  setVal(`${e.type}-name`,e.name);
-  setVal(`${e.type}-desc`,e.desc);
-  if(e.type==='run'){
-    // Set subtype
-    const subBtn=document.querySelector(`.subtype-btn[onclick="setSubtype('${e.subtype}',this)"]`);
-    if(subBtn) setSubtype(e.subtype,subBtn);
-    setVal('run-dist',e.dist);
-    setVal('run-time',e.time);
-    setVal('run-pace',e.pace);
-    setVal('run-hr',e.hr);
-    if(e.subtype==='track'&&e.intervals?.length){
-      setVal('track-dist',e.intDist);
-      setVal('track-num',e.intervals.length);
-      buildIntervalRows();
-      e.intervals.forEach(i=>{
-        setVal(`int-pace-${i.n}`,i.pace);
-        setVal(`int-rest-${i.n}`,i.rest);
-      });
-    }
-    // Set RPE
-    document.querySelectorAll('#rpe-run .rpe-btn').forEach(b=>{
-      b.classList.toggle('selected',b.textContent===e.rpe);
-    });
-  } else if(e.type==='other'){
-    setVal('other-dur',e.duration);
-    document.querySelectorAll('#rpe-other .rpe-btn').forEach(b=>{
-      b.classList.toggle('selected',b.textContent===e.rpe);
-    });
-  } else if(e.type==='gym'){
-    document.querySelectorAll('#rpe-gym .rpe-btn').forEach(b=>{
-      b.classList.toggle('selected',b.textContent===e.rpe);
-    });
-  } else if(e.type==='home'){
-    document.querySelectorAll('#rpe-home .rpe-btn').forEach(b=>{
-      b.classList.toggle('selected',b.textContent===e.rpe);
-    });
-  }
-  // Remove old entry and mark as editing so save updates rather than creates
-  window._editingId=id;
-  entries=entries.filter(x=>x.id!==id);
-  save();
 }
 
 function closeModal(evt){if(evt.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');}
