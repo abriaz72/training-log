@@ -674,7 +674,7 @@ function renderHistory(period){
     const g=grouped[k];
     const h=Math.floor(g.secs/3600);const m=Math.floor((g.secs%3600)/60);
     const timeStr=g.secs>0?(h>0?`${h}h ${m}m`:`${m}m`):'—';
-    const label=period==='weekly'?fmtWeek(k+'-01')||fmtWeek(k):period==='monthly'?fmtMonth(k):k;
+    const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
     return `<div class="period-row">
       <div class="period-title">${label}</div>
       <div class="period-stats">
@@ -710,7 +710,7 @@ function renderWeights(period){
   const keys=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
   c.innerHTML=keys.map(k=>{
     const g=grouped[k];
-    const label=period==='weekly'?fmtWeek(k+'-01')||fmtWeek(k):period==='monthly'?fmtMonth(k):k;
+    const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
     return `<div class="period-row">
       <div class="period-title">${label}</div>
       <div class="period-stats">
