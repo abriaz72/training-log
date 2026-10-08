@@ -675,15 +675,39 @@ function renderHistory(period){
     const h=Math.floor(g.secs/3600);const m=Math.floor((g.secs%3600)/60);
     const timeStr=g.secs>0?(h>0?`${h}h ${m}m`:`${m}m`):'—';
     const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
-    return `<div class="period-row">
-      <div class="period-title">${label}</div>
-      <div class="period-stats">
-        <div class="period-stat"><strong>${g.mi.toFixed(1)}</strong> mi</div>
-        <div class="period-stat"><strong>${timeStr}</strong></div>
-        <div class="period-stat"><strong>${g.entries.length}</strong> run${g.entries.length!==1?'s':''}</div>
+    const detailRows=g.entries.map(e=>{
+      const rd=new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+      const rsub=[e.dist?e.dist+' mi':'',e.time||''].filter(Boolean).join(' · ');
+      return `<div onclick="event.stopPropagation();showDetail(${e.id})" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:var(--bg2)">
+        <div><div style="font-size:14px;font-weight:600;color:var(--text)">${e.name||rd}</div><div style="font-size:12px;color:var(--text3)">${e.name?rd+' · ':''} ${rsub}</div></div>
+        <span style="color:var(--text3);font-size:16px">›</span>
+      </div>`;
+    }).join('');
+    return `<div class="period-row" onclick="toggleHistoryDetail(this)" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+        <div class="period-title">${label}</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="period-stats" style="margin:0">
+            <div class="period-stat"><strong>${g.mi.toFixed(1)}</strong> mi</div>
+            <div class="period-stat"><strong>${timeStr}</strong></div>
+            <div class="period-stat"><strong>${g.entries.length}</strong> run${g.entries.length!==1?'s':''}</div>
+          </div>
+          <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
+        </div>
       </div>
+      <div class="period-detail" style="display:none;margin:0 -16px -12px">${detailRows}</div>
     </div>`;
   }).join('');
+}
+
+function toggleHistoryDetail(row){
+  const detail=row.querySelector('.period-detail');
+  const arrow=row.querySelector('.expand-arrow');
+  const open=detail.style.display!=='none'&&detail.style.display!=='';
+  // collapse all
+  document.querySelectorAll('#history-content .period-detail').forEach(d=>d.style.display='none');
+  document.querySelectorAll('#history-content .expand-arrow').forEach(a=>a.style.transform='');
+  if(!open){detail.style.display='block';arrow.style.transform='rotate(90deg)';}
 }
 
 // ─── WEIGHTS ──────────────────────────────────────────────────────────
@@ -711,13 +735,37 @@ function renderWeights(period){
   c.innerHTML=keys.map(k=>{
     const g=grouped[k];
     const label=period==='weekly'?fmtWeek(k):period==='monthly'?fmtMonth(k):k;
-    return `<div class="period-row">
-      <div class="period-title">${label}</div>
-      <div class="period-stats">
-        <div class="period-stat"><strong>${g.length}</strong> session${g.length!==1?'s':''}</div>
+    const detailRows=g.map(e=>{
+      const gd=new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+      const exCount=[...(e.physio||[]),...(e.egym||[]),...(e.regGym||[]),...(e.block1||[]),...(e.isos||[])].length;
+      const gsub=exCount?`${exCount} exercise${exCount!==1?'s':''}`:e.desc||'';
+      return `<div onclick="event.stopPropagation();showDetail(${e.id})" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:var(--bg2)">
+        <div><div style="font-size:14px;font-weight:600;color:var(--text)">${e.name||'Gym session'}</div><div style="font-size:12px;color:var(--text3)">${gd}${gsub?' · '+gsub:''}</div></div>
+        <span style="color:var(--text3);font-size:16px">›</span>
+      </div>`;
+    }).join('');
+    return `<div class="period-row" onclick="toggleWeightsDetail(this)" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+        <div class="period-title">${label}</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="period-stats" style="margin:0">
+            <div class="period-stat"><strong>${g.length}</strong> session${g.length!==1?'s':''}</div>
+          </div>
+          <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
+        </div>
       </div>
+      <div class="period-detail" style="display:none;margin:0 -16px -12px">${detailRows}</div>
     </div>`;
   }).join('');
+}
+
+function toggleWeightsDetail(row){
+  const detail=row.querySelector('.period-detail');
+  const arrow=row.querySelector('.expand-arrow');
+  const open=detail.style.display!=='none'&&detail.style.display!=='';
+  document.querySelectorAll('#weights-content .period-detail').forEach(d=>d.style.display='none');
+  document.querySelectorAll('#weights-content .expand-arrow').forEach(a=>a.style.transform='');
+  if(!open){detail.style.display='block';arrow.style.transform='rotate(90deg)';}
 }
 
 // ─── DETAIL MODAL ─────────────────────────────────────────────────────
