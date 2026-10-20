@@ -686,15 +686,15 @@ function renderHistory(period){
     }).join('');
     return `<div class="period-row" onclick="toggleHistoryDetail(this)" style="cursor:pointer">
       <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-        <div class="period-title">${label}</div>
-        <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div class="period-title" style="margin-bottom:3px">${label}</div>
           <div class="period-stats" style="margin:0">
             <div class="period-stat"><strong>${g.mi.toFixed(1)}</strong> mi</div>
             <div class="period-stat"><strong>${timeStr}</strong></div>
             <div class="period-stat"><strong>${g.entries.length}</strong> run${g.entries.length!==1?'s':''}</div>
           </div>
-          <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
         </div>
+        <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
       </div>
       <div class="period-detail" style="display:none;margin:0 -16px -12px">${detailRows}</div>
     </div>`;
@@ -747,13 +747,13 @@ function renderWeights(period){
     }).join('');
     return `<div class="period-row" onclick="toggleWeightsDetail(this)" style="cursor:pointer">
       <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-        <div class="period-title">${label}</div>
-        <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div class="period-title" style="margin-bottom:3px">${label}</div>
           <div class="period-stats" style="margin:0">
             <div class="period-stat"><strong>${g.length}</strong> session${g.length!==1?'s':''}</div>
           </div>
-          <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
         </div>
+        <span class="expand-arrow" style="color:var(--text3);font-size:14px;transition:transform .2s">›</span>
       </div>
       <div class="period-detail" style="display:none;margin:0 -16px -12px">${detailRows}</div>
     </div>`;
