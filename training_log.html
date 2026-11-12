@@ -241,16 +241,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="field"><label>Date</label><input type="date" id="gym-date"></div>
     <div class="field"><label>Name</label><input type="text" id="gym-name" placeholder="e.g. Fitness First"></div>
     <div class="field"><label>Description (optional)</label><textarea id="gym-desc" placeholder="Focus of session, any notes..."></textarea></div>
-    <div class="section-label">Physio (gym)</div>
-    <div class="card" style="padding:0 16px" id="gym-physio-list"></div>
-    <div class="section-label">EGYM machines</div>
-    <div class="card" style="padding:0 16px" id="egym-list"></div>
-    <div class="section-label">Gym equipment</div>
-    <div class="card" style="padding:0 16px" id="reg-gym-list"></div>
-    <div class="section-label">Block 1 strength</div>
-    <div class="card" style="padding:0 16px" id="block1-list"></div>
-    <div class="section-label">Isometrics</div>
-    <div class="card" style="padding:0 16px" id="iso-list"></div>
+    <div class="section-label">Warm-up</div>
+    <div class="card" style="padding:0 16px" id="gym-warmup-list"></div>
+    <div class="section-label">Strength</div>
+    <div class="card" style="padding:0 16px" id="gym-strength-list"></div>
+    <div class="section-label">Cool-down</div>
+    <div class="card" style="padding:0 16px" id="gym-cooldown-list"></div>
     <div class="field" style="margin-top:12px"><label>RPE</label>
       <div class="rpe-grid" id="rpe-gym"></div>
     </div>
@@ -329,40 +325,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 // ─── DATA DEFINITIONS ────────────────────────────────────────────────
-const GYM_PHYSIO=[
-  {id:'gp1',name:'SL hamstring bridge on step',target:'3×8 · 30s rest',sets:3,reps:8,hasKg:true},
-  {id:'gp2',name:'Rear foot elevated split squat',target:'3×8 · 30s rest',sets:3,reps:8,hasKg:true},
-  {id:'gp3',name:'Standing SL knee drive hold',target:'2×5 · 5s hold',sets:2,reps:5,hasKg:false}
+// ─── GYM WORKOUT STRUCTURE ───────────────────────────────────────────
+const GYM_WARMUP=[
+  {id:'gw1',name:'World Greatest Stretch',timed:true,defaultSecs:30},
+  {id:'gw2',name:'Ankle Mobilization',timed:true,defaultSecs:30},
+  {id:'gw3',name:'T Spine Rotation Lying',timed:true,defaultSecs:30}
 ];
-const EGYM=[
-  {id:'eg1',name:'Chest press',sets:3,reps:8,unit:'resistance',default_weight:'36'},
-  {id:'eg2',name:'Rotary torso',sets:2,reps:12,unit:'resistance',default_weight:'33'},
-  {id:'eg3',name:'Lat pulldown',sets:2,reps:10,unit:'resistance',default_weight:'60'}
+const GYM_STRENGTH=[
+  {id:'gs1',name:'Barbell Romanian Deadlift',sets:2,reps:10,hasKg:true},
+  {id:'gs2',name:'EGYM Leg Press',sets:2,reps:12,hasKg:false},
+  {id:'gs3',name:'EGYM Chest Press',sets:2,reps:12,hasKg:false},
+  {id:'gs4',name:'EGYM Lat Pulldown',sets:2,reps:12,hasKg:false},
+  {id:'gs5',name:'Technogym Cable Anti Rotation',sets:2,reps:15,hasKg:true},
+  {id:'gs6',name:'Wall Sit',timed:true,defaultSecs:60},
+  {id:'gs7',name:'Crab Walk',timed:true,defaultSecs:30}
 ];
-const REG_GYM=[
-  {id:'rg1',name:'Leg extension',sets:3,reps:10,unit:'kg'},
-  {id:'rg2',name:'Leg curl',sets:3,reps:10,unit:'kg'}
-];
-const BLOCK1=[
-  {id:'b1',name:'Goblet squat',target:'3×8',sets:3,reps:8},
-  {id:'b2',name:'Split stance trap bar ISO pull',target:'3×20s hold each side',sets:3,reps:1,unit:'hold'},
-  {id:'b3',name:'Split squat',target:'3×8 each side',sets:3,reps:8},
-  {id:'b4',name:'Reverse lunge',target:'3×8 each side',sets:3,reps:8},
-  {id:'b5',name:'Split stance DB RDL',target:'3×8 each side',sets:3,reps:8},
-  {id:'b6',name:'Trap bar squat',target:'3×6',sets:3,reps:6},
-  {id:'b7',name:'Trap bar deadlift',target:'3×6',sets:3,reps:6},
-  {id:'b8',name:'DL leg press',target:'3×8',sets:3,reps:8},
-  {id:'b9',name:'Hamstring ISO',target:'3×20s hold each side',sets:3,reps:1,unit:'hold'},
-  {id:'b10',name:'Seated calf raises',target:'3×12',sets:3,reps:12},
-  {id:'b11',name:'Plate press lateral lunge',target:'3×8 each side',sets:3,reps:8},
-  {id:'b12',name:'Walking lunge',target:'3×10 per leg',sets:3,reps:10,hasKg:true}
-];
-const ISOS=[
-  {id:'iso1',name:'SL calf raise ISO on leg press',target:'3×5 × 2s',sets:3,reps:5},
-  {id:'iso2',name:'Seated calf ISO',target:'3×6 × 2s',sets:3,reps:6},
-  {id:'iso3',name:'Banded ISO runner march',target:'3×10 each',sets:3,reps:10},
-  {id:'iso4',name:'Hip ISO march',target:'3×5 each',sets:3,reps:5},
-  {id:'iso5',name:'SL prone machine hamstring curl',target:'3×5 each',sets:3,reps:5}
+const GYM_COOLDOWN=[
+  {id:'gc1',name:'Hamstring Stretch Lying',timed:true,defaultSecs:30},
+  {id:'gc2',name:'Calf Stretch Standing',timed:true,defaultSecs:30},
+  {id:'gc3',name:'Glute Stretch Lying',timed:true,defaultSecs:30}
 ];
 const HOME_PHYSIO=[
   {id:'hp1',name:'McConnell squat',target:'10×3 · 30s rest',sets:10,reps:3,note:'Use tightly rolled towel behind knee'},
@@ -455,18 +436,21 @@ function buildExList(containerId,exercises,prefix,showWeight=true){
   const c=document.getElementById(containerId);
   if(!c)return;
   c.innerHTML=exercises.map(ex=>{
-    const unit=ex.unit==='resistance'?'resistance':'kg';
-    const dw=ex.default_weight||'';
+    const isTimed=!!ex.timed;
+    const inputsHtml=isTimed
+      ?`<div class="ex-input-group"><input type="number" id="${prefix}-secs-${ex.id}" placeholder="${ex.defaultSecs||30}" min="1" max="600"><span>secs</span></div>`
+      :`<div class="ex-input-group"><input type="number" id="${prefix}-sets-${ex.id}" placeholder="${ex.sets||3}" min="1" max="20"><span>sets</span></div>
+        <div class="ex-input-group"><input type="number" id="${prefix}-reps-${ex.id}" placeholder="${ex.reps||10}" min="1" max="100"><span>reps</span></div>
+        ${showWeight&&ex.hasKg?`<div class="ex-input-group"><input type="number" id="${prefix}-kg-${ex.id}" placeholder="0" min="0" step="0.5"><span>kg</span></div>`:''}`;
     return `<div class="ex-row">
       <input type="checkbox" class="ex-check" id="${prefix}-${ex.id}" onchange="toggleEx('${prefix}-inp-${ex.id}',this.checked)">
       <div class="ex-body">
         <div class="ex-name">${ex.name}</div>
         ${ex.target?`<div class="ex-target">${ex.target}</div>`:''}
+        ${isTimed?`<div class="ex-target">${ex.defaultSecs}s</div>`:''}
         ${ex.note?`<div class="ex-note">${ex.note}</div>`:''}
         <div class="ex-inputs" id="${prefix}-inp-${ex.id}" style="display:none">
-          <div class="ex-input-group"><input type="number" id="${prefix}-sets-${ex.id}" placeholder="${ex.sets}" min="1" max="20"><span>sets</span></div>
-          <div class="ex-input-group"><input type="number" id="${prefix}-reps-${ex.id}" placeholder="${ex.reps}" min="1" max="100"><span>reps</span></div>
-          ${showWeight&&ex.hasKg!==false?`<div class="ex-input-group"><input type="number" id="${prefix}-kg-${ex.id}" placeholder="${dw||'0'}" min="0" step="0.5"><span>${unit}</span></div>`:''}
+          ${inputsHtml}
         </div>
       </div>
     </div>`;
@@ -476,11 +460,9 @@ function buildExList(containerId,exercises,prefix,showWeight=true){
 function toggleEx(id,show){const el=document.getElementById(id);if(el)el.style.display=show?'flex':'none';}
 
 function buildGymForms(){
-  buildExList('gym-physio-list',GYM_PHYSIO,'gp');
-  buildExList('egym-list',EGYM,'eg');
-  buildExList('reg-gym-list',REG_GYM,'rg');
-  buildExList('block1-list',BLOCK1,'b1');
-  buildExList('iso-list',ISOS,'iso');
+  buildExList('gym-warmup-list',GYM_WARMUP,'gw',false);
+  buildExList('gym-strength-list',GYM_STRENGTH,'gs');
+  buildExList('gym-cooldown-list',GYM_COOLDOWN,'gc',false);
 }
 
 function buildHomeForms(){
@@ -489,12 +471,17 @@ function buildHomeForms(){
 }
 
 function collectEx(exercises,prefix){
-  return exercises.filter(ex=>document.getElementById(`${prefix}-${ex.id}`)?.checked).map(ex=>({
-    name:ex.name,
-    sets:document.getElementById(`${prefix}-sets-${ex.id}`)?.value||ex.sets,
-    reps:document.getElementById(`${prefix}-reps-${ex.id}`)?.value||ex.reps,
-    kg:document.getElementById(`${prefix}-kg-${ex.id}`)?.value||''
-  }));
+  return exercises.filter(ex=>document.getElementById(`${prefix}-${ex.id}`)?.checked).map(ex=>{
+    if(ex.timed){
+      return {name:ex.name,timed:true,secs:document.getElementById(`${prefix}-secs-${ex.id}`)?.value||ex.defaultSecs};
+    }
+    return {
+      name:ex.name,
+      sets:document.getElementById(`${prefix}-sets-${ex.id}`)?.value||ex.sets,
+      reps:document.getElementById(`${prefix}-reps-${ex.id}`)?.value||ex.reps,
+      kg:document.getElementById(`${prefix}-kg-${ex.id}`)?.value||''
+    };
+  });
 }
 
 // ─── SAVE ─────────────────────────────────────────────────────────────
@@ -532,11 +519,9 @@ function saveGym(){
   const e={id,type:'gym',date,
     name:document.getElementById('gym-name').value,
     desc:document.getElementById('gym-desc').value,
-    physio:collectEx(GYM_PHYSIO,'gp'),
-    egym:collectEx(EGYM,'eg'),
-    regGym:collectEx(REG_GYM,'rg'),
-    block1:collectEx(BLOCK1,'b1'),
-    isos:collectEx(ISOS,'iso'),
+    warmup:collectEx(GYM_WARMUP,'gw'),
+    strength:collectEx(GYM_STRENGTH,'gs'),
+    cooldown:collectEx(GYM_COOLDOWN,'gc'),
     rpe:getRPE('rpe-gym')
   };
   const wasEditing=!!editingId;
@@ -815,16 +800,17 @@ function editEntry(id){
         if(!ex)return;
         const cb=document.getElementById(`${prefix}-${ex.id}`);
         if(cb){cb.checked=true;toggleEx(`${prefix}-inp-${ex.id}`,true);}
-        if(sv.sets){const el=document.getElementById(`${prefix}-sets-${ex.id}`);if(el)el.value=sv.sets;}
-        if(sv.reps){const el=document.getElementById(`${prefix}-reps-${ex.id}`);if(el)el.value=sv.reps;}
-        if(sv.kg){const el=document.getElementById(`${prefix}-kg-${ex.id}`);if(el)el.value=sv.kg;}
+        if(sv.timed){const el=document.getElementById(`${prefix}-secs-${ex.id}`);if(el)el.value=sv.secs;}
+        else{
+          if(sv.sets){const el=document.getElementById(`${prefix}-sets-${ex.id}`);if(el)el.value=sv.sets;}
+          if(sv.reps){const el=document.getElementById(`${prefix}-reps-${ex.id}`);if(el)el.value=sv.reps;}
+          if(sv.kg){const el=document.getElementById(`${prefix}-kg-${ex.id}`);if(el)el.value=sv.kg;}
+        }
       });
     };
-    prefillEx(GYM_PHYSIO,'gp',e.physio);
-    prefillEx(EGYM,'eg',e.egym);
-    prefillEx(REG_GYM,'rg',e.regGym);
-    prefillEx(BLOCK1,'b1',e.block1);
-    prefillEx(ISOS,'iso',e.isos);
+    prefillEx(GYM_WARMUP,'gw',e.warmup);
+    prefillEx(GYM_STRENGTH,'gs',e.strength);
+    prefillEx(GYM_COOLDOWN,'gc',e.cooldown);
     if(e.rpe){const el=document.querySelector('#rpe-gym .rpe-btn[data-v="'+e.rpe+'"]');if(el)el.click();}
   } else if(e.type==='home'){
     buildHomeForms();
@@ -874,12 +860,17 @@ function showDetail(id){
       html+=`</div>`;
     }
   } else if(e.type==='gym'){
-    const all=[...(e.physio||[]).map(x=>({...x,cat:'Physio'})),...(e.egym||[]).map(x=>({...x,cat:'EGYM',isR:true})),...(e.regGym||[]).map(x=>({...x,cat:'Equipment'})),...(e.block1||[]).map(x=>({...x,cat:'Block 1'})),...(e.isos||[]).map(x=>({...x,cat:'Isometrics'}))];
-    if(all.length){
+    const sections=[{label:'Warm-up',data:e.warmup},{label:'Strength',data:e.strength},{label:'Cool-down',data:e.cooldown}];
+    sections.forEach(sec=>{
+      if(!sec.data||!sec.data.length)return;
+      html+=`<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">${sec.label}</div>`;
       html+=`<div class="card" style="padding:0 16px">`;
-      all.forEach(ex=>{const wt=ex.kg?` · ${ex.kg}${ex.isR?'r':'kg'}`:'';html+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:14px"><span style="font-size:11px;color:var(--text3)">${ex.cat} · </span>${ex.name}<span style="color:var(--text3)"> ${ex.sets}×${ex.reps}${wt}</span></div>`;});
+      sec.data.forEach(ex=>{
+        const detail=ex.timed?`${ex.secs}s`:`${ex.sets}×${ex.reps}${ex.kg?' · '+ex.kg+'kg':''}`;
+        html+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;justify-content:space-between"><span>${ex.name}</span><span style="color:var(--text3)">${detail}</span></div>`;
+      });
       html+=`</div>`;
-    }
+    });
   } else if(e.type==='other'){
     if(e.duration)html+=`<div class="stat-card" style="margin-bottom:12px"><div class="stat-num">${e.duration}</div><div class="stat-lbl">minutes</div></div>`;
   }
