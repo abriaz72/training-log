@@ -239,11 +239,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- GYM -->
   <div id="form-gym" style="display:none">
     <div class="field"><label>Date</label><input type="date" id="gym-date"></div>
+    <div class="field"><label>Day</label>
+      <div class="period-tabs" style="margin-top:4px">
+        <button class="period-btn active" onclick="setGymDay(1,this)">Day 1</button>
+        <button class="period-btn" onclick="setGymDay(2,this)">Day 2</button>
+        <button class="period-btn" onclick="setGymDay(3,this)">Day 3</button>
+      </div>
+      <input type="hidden" id="gym-day" value="1">
+      <div id="gym-day-label" style="font-size:12px;color:var(--text3);margin-top:4px">Day 1 – Full Body</div>
+    </div>
     <div class="field"><label>Name</label><input type="text" id="gym-name" placeholder="e.g. Fitness First"></div>
     <div class="field"><label>Description (optional)</label><textarea id="gym-desc" placeholder="Focus of session, any notes..."></textarea></div>
     <div class="section-label">Warm-up</div>
     <div class="card" style="padding:0 16px" id="gym-warmup-list"></div>
-    <div class="section-label">Strength</div>
+    <div class="section-label" id="gym-strength-label">Strength</div>
     <div class="card" style="padding:0 16px" id="gym-strength-list"></div>
     <div class="section-label">Cool-down</div>
     <div class="card" style="padding:0 16px" id="gym-cooldown-list"></div>
@@ -326,25 +335,73 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 // ─── DATA DEFINITIONS ────────────────────────────────────────────────
 // ─── GYM WORKOUT STRUCTURE ───────────────────────────────────────────
-const GYM_WARMUP=[
-  {id:'gw1',name:'World Greatest Stretch',timed:true,defaultSecs:30},
-  {id:'gw2',name:'Ankle Mobilization',timed:true,defaultSecs:30},
-  {id:'gw3',name:'T Spine Rotation Lying',timed:true,defaultSecs:30}
+const GYM_DAYS=[
+  {
+    day:1,label:'Day 1 – Full Body',
+    warmup:[
+      {id:'gw1',name:'World Greatest Stretch',timed:true,defaultSecs:30},
+      {id:'gw2',name:'Ankle Mobilization',timed:true,defaultSecs:30},
+      {id:'gw3',name:'T Spine Rotation Lying',timed:true,defaultSecs:30}
+    ],
+    strength:[
+      {id:'gs1',name:'Barbell Romanian Deadlift',sets:2,reps:10,hasKg:true},
+      {id:'gs2',name:'EGYM Leg Press',sets:2,reps:12,hasKg:false},
+      {id:'gs3',name:'EGYM Chest Press',sets:2,reps:12,hasKg:false},
+      {id:'gs4',name:'EGYM Lat Pulldown',sets:2,reps:12,hasKg:false},
+      {id:'gs5',name:'Technogym Cable Anti Rotation',sets:2,reps:15,hasKg:true},
+      {id:'gs6',name:'Wall Sit',timed:true,defaultSecs:60},
+      {id:'gs7',name:'Crab Walk',timed:true,defaultSecs:30}
+    ],
+    cooldown:[
+      {id:'gc1',name:'Hamstring Stretch Lying',timed:true,defaultSecs:30},
+      {id:'gc2',name:'Calf Stretch Standing',timed:true,defaultSecs:30},
+      {id:'gc3',name:'Glute Stretch Lying',timed:true,defaultSecs:30}
+    ]
+  },
+  {
+    day:2,label:'Day 2 – Cardio',
+    warmup:[
+      {id:'d2w1',name:'Arm Circles',timed:true,defaultSecs:30},
+      {id:'d2w2',name:'Hip Windshield Wipers',timed:true,defaultSecs:30},
+      {id:'d2w3',name:'Quadruped Thoracic Spine Rotation',timed:true,defaultSecs:30},
+      {id:'d2w4',name:'Bridge to Hamstring Stretch',timed:true,defaultSecs:30},
+      {id:'d2w5',name:'Hip Circles Forward',timed:true,defaultSecs:30}
+    ],
+    strength:[
+      {id:'d2s1',name:'Concept2 Rowing Ergometer',timed:true,defaultSecs:1200}
+    ],
+    cooldown:[
+      {id:'d2c1',name:'Chest Stretch Standing',timed:true,defaultSecs:30},
+      {id:'d2c2',name:'Glutes Stretch Lying',timed:true,defaultSecs:30},
+      {id:'d2c3',name:'Deep Calf Muscle Stretch',timed:true,defaultSecs:30},
+      {id:'d2c4',name:'Adductors Stretch Kneeling',timed:true,defaultSecs:30},
+      {id:'d2c5',name:'Lower Back Stretch',timed:true,defaultSecs:30}
+    ]
+  },
+  {
+    day:3,label:'Day 3 – Full Body',
+    warmup:[
+      {id:'d3w1',name:'Quadruped T Spine Mobilization',timed:true,defaultSecs:30},
+      {id:'d3w2',name:'Foam Roll Hamstrings',timed:true,defaultSecs:30},
+      {id:'d3w3',name:'Foam Roll Front Thigh',timed:true,defaultSecs:30}
+    ],
+    strength:[
+      {id:'d3s1',name:'Dumbbell Squats',sets:2,reps:10,hasKg:true,defaultKg:'12'},
+      {id:'d3s2',name:'EGYM Hip Thrust',sets:2,reps:15,hasKg:false},
+      {id:'d3s3',name:'Dumbbell Shoulder Press Sitting',sets:2,reps:10,hasKg:true,defaultKg:'12'},
+      {id:'d3s4',name:'Watson Cable Row Close',sets:2,reps:12,hasKg:true,defaultKg:'43.5'},
+      {id:'d3s5',name:'EGYM Rotary Torso',sets:2,reps:15,hasKg:false}
+    ],
+    cooldown:[
+      {id:'d3c1',name:'Chest Stretch Standing',timed:true,defaultSecs:30},
+      {id:'d3c2',name:'Adductors Stretch Sitting',timed:true,defaultSecs:30},
+      {id:'d3c3',name:'Calf Stretch on Wall',timed:true,defaultSecs:30}
+    ]
+  }
 ];
-const GYM_STRENGTH=[
-  {id:'gs1',name:'Barbell Romanian Deadlift',sets:2,reps:10,hasKg:true},
-  {id:'gs2',name:'EGYM Leg Press',sets:2,reps:12,hasKg:false},
-  {id:'gs3',name:'EGYM Chest Press',sets:2,reps:12,hasKg:false},
-  {id:'gs4',name:'EGYM Lat Pulldown',sets:2,reps:12,hasKg:false},
-  {id:'gs5',name:'Technogym Cable Anti Rotation',sets:2,reps:15,hasKg:true},
-  {id:'gs6',name:'Wall Sit',timed:true,defaultSecs:60},
-  {id:'gs7',name:'Crab Walk',timed:true,defaultSecs:30}
-];
-const GYM_COOLDOWN=[
-  {id:'gc1',name:'Hamstring Stretch Lying',timed:true,defaultSecs:30},
-  {id:'gc2',name:'Calf Stretch Standing',timed:true,defaultSecs:30},
-  {id:'gc3',name:'Glute Stretch Lying',timed:true,defaultSecs:30}
-];
+// helpers to get current day's data
+function gymDay(){return parseInt(document.getElementById('gym-day')?.value||1);}
+function gymDayData(){return GYM_DAYS.find(d=>d.day===gymDay())||GYM_DAYS[0];}
 const HOME_PHYSIO=[
   {id:'hp1',name:'McConnell squat',target:'10×3 · 30s rest',sets:10,reps:3,note:'Use tightly rolled towel behind knee'},
   {id:'hp2',name:'Table top alternate leg lowering',target:'3×10 · 2s hold',sets:3,reps:10},
@@ -441,7 +498,7 @@ function buildExList(containerId,exercises,prefix,showWeight=true){
       ?`<div class="ex-input-group"><input type="number" id="${prefix}-secs-${ex.id}" placeholder="${ex.defaultSecs||30}" min="1" max="600"><span>secs</span></div>`
       :`<div class="ex-input-group"><input type="number" id="${prefix}-sets-${ex.id}" placeholder="${ex.sets||3}" min="1" max="20"><span>sets</span></div>
         <div class="ex-input-group"><input type="number" id="${prefix}-reps-${ex.id}" placeholder="${ex.reps||10}" min="1" max="100"><span>reps</span></div>
-        ${showWeight&&ex.hasKg?`<div class="ex-input-group"><input type="number" id="${prefix}-kg-${ex.id}" placeholder="0" min="0" step="0.5"><span>kg</span></div>`:''}`;
+        ${showWeight&&ex.hasKg?`<div class="ex-input-group"><input type="number" id="${prefix}-kg-${ex.id}" placeholder="${ex.defaultKg||'0'}" min="0" step="0.5"><span>kg</span></div>`:''}`;
     return `<div class="ex-row">
       <input type="checkbox" class="ex-check" id="${prefix}-${ex.id}" onchange="toggleEx('${prefix}-inp-${ex.id}',this.checked)">
       <div class="ex-body">
@@ -459,10 +516,21 @@ function buildExList(containerId,exercises,prefix,showWeight=true){
 
 function toggleEx(id,show){const el=document.getElementById(id);if(el)el.style.display=show?'flex':'none';}
 
+function setGymDay(d,btn){
+  document.getElementById('gym-day').value=d;
+  document.querySelectorAll('#form-gym .period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const data=GYM_DAYS.find(x=>x.day===d)||GYM_DAYS[0];
+  document.getElementById('gym-day-label').textContent=data.label;
+  const sl=document.getElementById('gym-strength-label');
+  if(sl)sl.textContent=d===2?'Cardio':'Strength';
+  buildGymForms();
+}
 function buildGymForms(){
-  buildExList('gym-warmup-list',GYM_WARMUP,'gw',false);
-  buildExList('gym-strength-list',GYM_STRENGTH,'gs');
-  buildExList('gym-cooldown-list',GYM_COOLDOWN,'gc',false);
+  const data=gymDayData();
+  buildExList('gym-warmup-list',data.warmup,'gw',false);
+  buildExList('gym-strength-list',data.strength,'gs');
+  buildExList('gym-cooldown-list',data.cooldown,'gc',false);
 }
 
 function buildHomeForms(){
@@ -516,12 +584,14 @@ function saveGym(){
   if(!date){showToast('Please set a date');return;}
   const id=editingId||Date.now();
   if(editingId)entries=entries.filter(e=>e.id!==editingId);
-  const e={id,type:'gym',date,
+  const dayNum=gymDay();
+  const dayData=gymDayData();
+  const e={id,type:'gym',date,gymDay:dayNum,gymDayLabel:dayData.label,
     name:document.getElementById('gym-name').value,
     desc:document.getElementById('gym-desc').value,
-    warmup:collectEx(GYM_WARMUP,'gw'),
-    strength:collectEx(GYM_STRENGTH,'gs'),
-    cooldown:collectEx(GYM_COOLDOWN,'gc'),
+    warmup:collectEx(dayData.warmup,'gw'),
+    strength:collectEx(dayData.strength,'gs'),
+    cooldown:collectEx(dayData.cooldown,'gc'),
     rpe:getRPE('rpe-gym')
   };
   const wasEditing=!!editingId;
@@ -788,6 +858,16 @@ function editEntry(id){
   if(typeBtn)setType(e.type,typeBtn);
   editingId=id;
   if(e.type==='gym'){
+    // Restore day selector first so buildGymForms loads correct exercises
+    const savedDay=e.gymDay||1;
+    document.getElementById('gym-day').value=savedDay;
+    const dayBtn=document.querySelector(`#form-gym .period-btn:nth-child(${savedDay})`);
+    document.querySelectorAll('#form-gym .period-btn').forEach(b=>b.classList.remove('active'));
+    if(dayBtn)dayBtn.classList.add('active');
+    const dayData=GYM_DAYS.find(x=>x.day===savedDay)||GYM_DAYS[0];
+    document.getElementById('gym-day-label').textContent=dayData.label;
+    const sl=document.getElementById('gym-strength-label');
+    if(sl)sl.textContent=savedDay===2?'Cardio':'Strength';
     buildGymForms();
     document.getElementById('gym-date').value=e.date;
     document.getElementById('gym-name').value=e.name||'';
@@ -808,9 +888,9 @@ function editEntry(id){
         }
       });
     };
-    prefillEx(GYM_WARMUP,'gw',e.warmup);
-    prefillEx(GYM_STRENGTH,'gs',e.strength);
-    prefillEx(GYM_COOLDOWN,'gc',e.cooldown);
+    prefillEx(dayData.warmup,'gw',e.warmup);
+    prefillEx(dayData.strength,'gs',e.strength);
+    prefillEx(dayData.cooldown,'gc',e.cooldown);
     if(e.rpe){const el=document.querySelector('#rpe-gym .rpe-btn[data-v="'+e.rpe+'"]');if(el)el.click();}
   } else if(e.type==='home'){
     buildHomeForms();
@@ -860,7 +940,9 @@ function showDetail(id){
       html+=`</div>`;
     }
   } else if(e.type==='gym'){
-    const sections=[{label:'Warm-up',data:e.warmup},{label:'Strength',data:e.strength},{label:'Cool-down',data:e.cooldown}];
+    if(e.gymDayLabel)html+=`<div style="font-size:12px;color:var(--gym);font-weight:600;margin-bottom:10px">${e.gymDayLabel}</div>`;
+    const strengthLabel=(e.gymDay===2)?'Cardio':'Strength';
+    const sections=[{label:'Warm-up',data:e.warmup},{label:strengthLabel,data:e.strength},{label:'Cool-down',data:e.cooldown}];
     sections.forEach(sec=>{
       if(!sec.data||!sec.data.length)return;
       html+=`<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">${sec.label}</div>`;
